@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* The colors and type of jamalsjones.com, so the games look the same here. */
+@theme {
+  --color-concrete: oklch(0.935 0.004 220);
+  --color-bone: oklch(0.99 0.001 220);
+  --color-carbon: oklch(0.19 0.002 250);
+  --color-graphite: oklch(0.155 0.002 250);
+}
+
+:root {
+  --font-display: "Host Grotesk", ui-sans-serif, sans-serif;
+  --font-sans: "Satoshi", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background: var(--color-concrete);
+    color: var(--color-graphite);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.05em;
+    line-height: 0.8;
+    text-transform: lowercase;
+  }
+  .statement {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+  .pill-dark {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full text-[13px] font-medium transition-all duration-300 cursor-pointer bg-carbon text-concrete hover:bg-graphite;
+  }
+  .pill-light {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full text-[13px] font-medium transition-all duration-300 cursor-pointer bg-bone text-graphite hover:bg-white;
+  }
+  .pill-outline {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full text-[13px] font-medium transition-all duration-300 cursor-pointer bg-transparent text-graphite border border-graphite/25 hover:border-graphite/60;
+  }
+  .panel {
+    @apply bg-bone rounded-2xl;
+  }
+}

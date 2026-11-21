@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your first day at Fernway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --text:#1E2B3A; --muted:#54657A; --panel:rgba(247,250,249,.94); --panel-solid:#F7FAF9;
+  --panel-2:#E6EEEC; --line:#C9D6D3; --marigold:#F2B134; --sage:#4F8A4B; --tide:#3E6E8E;
+  --shadow:0 18px 40px -18px rgba(30,43,58,.45);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --text:#E6EDF1; --muted:#9FB0C0; --panel:rgba(22,32,43,.93); --panel-solid:#16202B;
+    --panel-2:#22303D; --line:#344451; --sage:#86C181; --tide:#8CC0DE;
+    --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --text:#E6EDF1; --muted:#9FB0C0; --panel:rgba(22,32,43,.93); --panel-solid:#16202B;
+  --panel-2:#22303D; --line:#344451; --sage:#86C181; --tide:#8CC0DE;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;overflow:hidden;background:#B9DCEB;color:var(--text);
+  font:400 16px/1.55 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+h1,h2,.time,.brand{font-family:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--marigold);outline-offset:3px;border-radius:6px}
+
+/* Timeline of the day */
+.day{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 14px);
+  z-index:5;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-radius:999px;padding:10px 18px 8px;box-shadow:var(--shadow);max-width:calc(100% - 24px)}
+.day ol{list-style:none;margin:0;padding:0;display:flex;gap:4px;position:relative}
+.day ol::before{content:"";position:absolute;left:22px;right:22px;top:9px;height:2px;background:var(--line)}
+.day li{position:relative}
+.day button{background:none;border:0;padding:0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);min-width:44px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--panel-solid);border:2px solid var(--line);position:relative;transition:transform .2s,background .2s,border-color .2s}
+.day .done .dot{background:var(--sage);border-color:var(--sage)}
+.day .current .dot{background:var(--marigold);border-color:var(--marigold);transform:scale(1.25)}
+.day .current{color:var(--text)}
+.dlabel{font-size:12px;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* Stop card */
+.card{position:fixed;z-index:5;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);
+  width:min(380px,calc(100% - 48px));background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:20px;padding:22px 22px 18px;box-shadow:var(--shadow);max-height:calc(100% - 140px);overflow:auto}
+.time{font-weight:700;font-size:15px;color:var(--tide);margin:0 0 2px;font-variant-numeric:tabular-nums}
+.card h2{font-size:27px;line-height:1.1;font-weight:800;letter-spacing:-.015em;margin:0 0 10px}
+.card p.desc{margin:0 0 14px;color:var(--muted);max-width:60ch}
+.tasks{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:4px}
+.tasks label{display:flex;gap:12px;align-items:flex-start;padding:8px 10px;border-radius:12px;cursor:pointer;transition:background .15s}
+.tasks label:hover{background:var(--panel-2)}
+.tasks input{appearance:none;-webkit-appearance:none;margin:1px 0 0;flex:0 0 22px;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);background:var(--panel-solid);display:grid;place-content:center;cursor:pointer;transition:background .15s,border-color .15s}
+.tasks input::after{content:"";width:10px;height:6px;border:solid #fff;border-width:0 0 2.5px 2.5px;transform:rotate(-45deg) translate(1px,-1px) scale(0);transition:transform .15s}
+.tasks input:checked{background:var(--sage);border-color:var(--sage)}
+.tasks input:checked::after{transform:rotate(-45deg) translate(1px,-1px) scale(1)}
+.tasks input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.count{font-size:14px;color:var(--muted);margin:2px 10px 14px}
+.actions{display:flex;gap:10px;align-items:center}
+.btn{border:0;border-radius:12px;padding:11px 18px;font-weight:700;background:var(--marigold);color:#1E2B3A;flex:1}
+.btn:hover{filter:brightness(1.05)}
+.btn.quiet{background:transparent;color:var(--text);border:2px solid var(--line);flex:0 0 auto;padding:9px 16px}
+.btn.quiet:disabled{opacity:.4;cursor:default}
+.swap{animation:swap .35s ease}
+@keyframes swap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hint{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:4;font-size:13px;color:#1E2B3A;background:rgba(247,250,249,.75);padding:6px 12px;border-radius:999px}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:rgba(30,43,58,.18)}
+.overlay[hidden]{display:none}
+.sheet{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:26px;padding:34px 32px 28px;max-width:470px;box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--tide);margin-bottom:18px}
+.brand i{width:26px;height:26px;border-radius:8px 8px 8px 2px;background:var(--sage);display:inline-block;position:relative}
+.brand i::after{content:"";position:absolute;inset:7px;border-radius:50% 50% 50% 0;background:var(--marigold)}
+.sheet h1{font-size:clamp(34px,7vw,46px);line-height:1.02;font-weight:800;letter-spacing:-.025em;margin:0 0 14px}
+.sheet p{margin:0 0 22px;color:var(--muted);max-width:52ch}
+.sheet .actions{flex-wrap:wrap}
+.sheet .btn{flex:0 0 auto}
+.back{display:inline-block;margin-top:16px;font-size:14px;color:var(--muted)}
+.back:hover{color:var(--text)}
+
+@media (max-width:760px){
+  .day{padding:8px 10px 6px}
+  .day button{min-width:34px;padding:0 3px}
+  .day ol::before{left:17px;right:17px}
+  .dlabel{display:none}
+  .day .current .dlabel{display:block;position:absolute;top:22px;left:50%;transform:translateX(-50%)}
+  .day{padding-bottom:24px}
+  .card{left:12px;right:12px;width:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);padding:18px 16px 14px;max-height:56%}
+  .card h2{font-size:23px}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){.swap{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="A miniature office campus with a path linking each stop of your first day"></canvas>
+
+<nav class="day" aria-label="Your day"><ol id="timeline"></ol></nav>
+
+<section class="card" id="card" aria-live="polite" hidden>
+  <div id="cardBody"></div>
+  <div class="actions">
+    <button class="btn quiet" id="prev">Back</button>
+    <button class="btn" id="next">Walk to the next stop</button>
+  </div>
+</section>
+<div class="hint" id="hint" hidden>Tap a pin to jump, or use ← →</div>
+
+<div class="overlay" id="intro">
+  <div class="sheet" role="dialog" aria-labelledby="introTitle">
+    <div class="brand"><i></i>Fernway</div>
+    <h1 id="introTitle">Your first day, one stop at a time</h1>
+    <p id="introText">Walk through day one from the front desk to the garden gate. Each stop has a few small things to do. Tick them off as you go, or just look around.</p>
+    <div class="actions" id="introActions"></div>
+    <a class="back" href="../">← All games</a>
+  </div>
+</div>
+
+<div class="overlay" id="finish" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="finTitle">
+    <div class="brand"><i></i>Fernway</div>
+    <h1 id="finTitle">That’s day one.</h1>
+    <p id="finText"></p>
+    <div class="actions">
+      <button class="btn" id="again">Walk the day again</button>
+      <button class="btn quiet" id="fresh">Clear ticks and restart</button>
+    </div>
+    <a class="back" href="../">← All games</a>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const STOPS = [
+  {time:'8:45 am', title:'Check in at the front desk', kind:'lobby',
+   desc:'Maya at reception has your badge ready. It opens the front door and the third-floor lifts.',
+   tasks:['Collect your badge','Grab a locker key','Find the nearest kitchen and restrooms']},
+  {time:'9:15 am', title:'Pick up your laptop', kind:'it',
+   desc:'The IT bar is just past the lobby. Bring your badge and they’ll pair it with your account.',
+   tasks:['Sign in with your temporary password','Set up two-step sign-in','Join the #welcome channel']},
+  {time:'10:00 am', title:'Settle into your desk', kind:'desk',
+   desc:'Your buddy, Sam, sits two seats over. They’re your go-to for small questions all week.',
+   tasks:['Say hi to Sam','Adjust your chair and monitor height','Bookmark the team handbook']},
+  {time:'11:00 am', title:'Meet the team', kind:'team',
+   desc:'A short standing intro. Everyone shares their name, what they’re working on, and one thing they wish they’d known in week one.',
+   tasks:['Introduce yourself in a sentence or two','Note three names to remember','Ask what the team ships most often']},
+  {time:'12:30 pm', title:'Lunch with your buddy', kind:'cafe',
+   desc:'Lunch is on the team today. The café is busiest at noon, so you’ve got the quiet half hour.',
+   tasks:['Try the daily special','Ask Sam what a typical week looks like','Take a real break, laptop closed']},
+  {time:'2:00 pm', title:'First one-to-one with your manager', kind:'manager',
+   desc:'Thirty minutes with Priya about how you like to work and what a good first month looks like.',
+   tasks:['Share how you prefer to get feedback','Agree on three goals for week one','Put a weekly one-to-one in your calendar']},
+  {time:'3:30 pm', title:'Ship something small', kind:'task',
+   desc:'Your starter task is a typo fix in the docs. It’s small on purpose: the point is to walk through review once.',
+   tasks:['Open the starter ticket','Ask one question in the team channel','Send your change for review']},
+  {time:'5:00 pm', title:'Wrap up day one', kind:'exit',
+   desc:'Nobody expects you to remember everything. Write down what stuck, then head home through the garden.',
+   tasks:['Jot down three things you learned','Note one question for tomorrow','Head out through the garden gate']}
+];
+const N = STOPS.length;
+const KEY = 'fernway-first-day-v1';
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- state ---------- */
+let saved = null;
+try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e) { saved = null; }
+const blank = () => STOPS.map(s => s.tasks.map(() => false));
+const state = { current:0, done:blank() };
+if (saved && Array.isArray(saved.done) && saved.done.length === N) {
+  state.done = saved.done.map((row,i) => STOPS[i].tasks.map((_,j) => !!(row && row[j])));
+  state.current = Math.min(Math.max(parseInt(saved.current,10)||0,0),N-1);
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+const stopDone = i => state.done[i].every(Boolean);
+const totalDone = () => state.done.flat().filter(Boolean).length;
+const totalTasks = STOPS.reduce((a,s)=>a+s.tasks.length,0);
+
+/* ---------- three setup ---------- */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#B9DCEB');
+scene.fog = new THREE.Fog('#B9DCEB', 60, 140);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
+camera.position.set(40, 34, 40);
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x7f9a80, 0.7);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-34, right:34, top:34, bottom:-34, near:1, far:120});
+sun.shadow.bias = -0.0005;
+scene.add(sun); scene.add(sun.target);
+
+/* ---------- helpers ---------- */
+const MATS = {};
+function mat(c){ if(!MATS[c]) MATS[c] = new THREE.MeshStandardMaterial({color:c, roughness:.85, metalness:0, flatShading:true}); return MATS[c]; }
+function mk(geo, m){ const o = new THREE.Mesh(geo, typeof m === 'string' ? mat(m) : m); o.castShadow = true; o.receiveShadow = true; return o; }
+function box(g,w,h,d,c,x,y,z){ const o = mk(new THREE.BoxGeometry(w,h,d), c); o.position.set(x, y+h/2, z); g.add(o); return o; }
+function cyl(g,rt,rb,h,c,x,y,z,seg){ const o = mk(new THREE.CylinderGeometry(rt,rb,h,seg||12), c); o.position.set(x, y+h/2, z); g.add(o); return o; }
+function ball(g,r,c,x,y,z){ const o = mk(new THREE.SphereGeometry(r,14,10), c); o.position.set(x,y,z); g.add(o); return o; }
+function cone(g,r,h,c,x,y,z,seg){ const o = mk(new THREE.ConeGeometry(r,h,seg||8), c); o.position.set(x,y+h/2,z); g.add(o); return o; }
+const SKIN = ['#E9C4A0','#C98E62','#8A5A3B','#F1D3B8','#5E3B26','#B57A52'];
+const SHIRTS = ['#3E6E8E','#5E8F5A','#8E5E8A','#D96C5B','#2F4858','#E0A43A'];
+function person(g, body, x, z, skin){ const p = new THREE.Group(); cyl(p,.26,.32,.85,body,0,0,0,10); ball(p,.22,skin,0,1.07,0); p.position.set(x,0,z); g.add(p); return p; }
+
+const windowMat = new THREE.MeshStandardMaterial({color:'#A8D0E2', emissive:'#F5C86A', emissiveIntensity:0, roughness:.3, flatShading:true});
+const screenMat = new THREE.MeshStandardMaterial({color:'#2A3B4D', emissive:'#7FC4E8', emissiveIntensity:.55, flatShading:true});
+const taskScreenMat = new THREE.MeshStandardMaterial({color:'#3A3220', emissive:'#F2B134', emissiveIntensity:.8, flatShading:true});
+const glassMat = new THREE.MeshStandardMaterial({color:'#BFE3F0', transparent:true, opacity:.28, roughness:.1, depthWrite:false});
+const lampMat = new THREE.MeshStandardMaterial({color:'#FFF1C9', emissive:'#FFD27A', emissiveIntensity:0});
+
+/* ---------- island, water, path ---------- */
+const island = mk(new THREE.CylinderGeometry(28, 25, 2.4, 64), '#9BBF8A');
+island.position.y = -1.2; island.castShadow = false; scene.add(island);
+const cliff = mk(new THREE.CylinderGeometry(25, 21, 3, 64), '#B7A88A');
+cliff.position.y = -3.6; cliff.castShadow = false; scene.add(cliff);
+const waterMat = new THREE.MeshStandardMaterial({color:'#6FA6BE', roughness:.4, flatShading:true});
+const water = new THREE.Mesh(new THREE.CircleGeometry(220, 64), waterMat);
+water.rotation.x = -Math.PI/2; water.position.y = -3.2; water.receiveShadow = true; scene.add(water);
+
+const pts = [[-15,13],[-8,15.5],[0,13],[8,15.5],[14.5,10],[15.5,3],[9,0],[0,1],[-8,-1],[-14.5,-5],[-13.5,-12],[-5,-15.5],[4,-14],[12,-12.5]]
+  .map(p => new THREE.Vector3(p[0],0,p[1]));
+const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', .5);
+const path = mk(new THREE.TubeGeometry(curve, 400, 1, 8, false), '#E6DCC4');
+path.scale.y = .05; path.position.y = .04; path.castShadow = false; scene.add(path);
+const pathSamples = curve.getSpacedPoints(240);
+
+/* ---------- stations ---------- */
+const BUILD = {
+  lobby(g){
+    box(g,6.5,3.4,4,'#E4EBEE',0,0,0); box(g,6.9,.35,4.4,'#3E6E8E',0,3.4,0);
+    box(g,1.3,2.1,.12,'#1E2B3A',0,0,2.02);
+    [-2.2,2.2].forEach(x=>box(g,1.3,1.1,.08,windowMat,x,1.3,2.02));
+    box(g,2.8,.55,.12,'#F2B134',0,2.55,2.06);
+    cyl(g,.06,.06,4.6,'#C9D3D8',-3.9,0,2.4); box(g,1.1,.65,.05,'#F2B134',-3.3,3.7,2.4);
+    person(g,'#3E6E8E',1.7,2.9,SKIN[1]);
+  },
+  it(g){
+    box(g,4.6,2.8,.25,'#E4EBEE',0,0,-2); box(g,1.8,.5,.08,'#F2B134',0,2.1,-1.85);
+    box(g,4,1.05,1.5,'#3E6E8E',0,0,0); box(g,4.2,.1,1.7,'#E4EBEE',0,1.05,0);
+    [-.9,.9].forEach(x=>{ box(g,.9,.05,.6,'#CBD3D9',x,1.15,.2); const s = box(g,.9,.6,.04,screenMat,x,1.17,-.1); s.rotation.x = -.25; });
+    person(g,'#2F4858',0,-1.2,SKIN[2]);
+  },
+  desk(g){
+    box(g,7.4,.06,3.8,'#D6DFDB',0,0,0);
+    const unit = (x,chair)=>{
+      const u = new THREE.Group(); u.position.x = x; g.add(u);
+      box(u,1.9,.08,.95,'#D8DEE2',0,.72,0);
+      [[-.85,-.4],[.85,-.4],[-.85,.4],[.85,.4]].forEach(p=>box(u,.06,.72,.06,'#8B97A0',p[0],0,p[1]));
+      box(u,.08,.16,.08,'#8B97A0',0,.8,-.3); box(u,.9,.55,.05,screenMat,0,.96,-.3);
+      cyl(u,.04,.04,.45,'#55606A',0,0,.8); box(u,.62,.08,.6,chair,0,.45,.8); box(u,.62,.6,.08,chair,0,.53,1.1);
+    };
+    unit(-1.2,'#3E6E8E'); unit(1.2,'#F2B134');
+    cyl(g,.32,.25,.55,'#3E6E8E',-3,0,0); ball(g,.6,'#5E8F5A',-3,1.05,0);
+    person(g,'#5E8F5A',3,.6,SKIN[0]);
+  },
+  team(g){
+    cyl(g,2.7,2.7,.05,'#3E6E8E',0,0,0,36);
+    for(let i=0;i<6;i++){ const a = i/6*Math.PI*2 + .3; person(g,SHIRTS[i],Math.cos(a)*1.9,Math.sin(a)*1.9,SKIN[i]); }
+    box(g,2.2,1.3,.08,'#F7FAF9',0,1,-3.3); box(g,.06,1,.06,'#55606A',-.9,0,-3.3); box(g,.06,1,.06,'#55606A',.9,0,-3.3);
+    box(g,.8,.08,.02,'#D96C5B',-.4,1.8,-3.25); box(g,.5,.08,.02,'#3E6E8E',.2,1.55,-3.25);
+  },
+  cafe(g){
+    box(g,5.6,2.8,3.4,'#E7EFEA',0,0,-1.2); box(g,6,.3,3.8,'#5E8F5A',0,2.8,-1.2);
+    box(g,1.1,2,.1,'#1E2B3A',-1.6,0,.52); box(g,2.4,1.2,.08,windowMat,.9,.9,.52);
+    for(let i=0;i<7;i++){ const s = box(g,.8,.06,1.3,i%2?'#F7FAF9':'#F2B134',-2.4+i*.8,2.15,1.05); s.rotation.x = .4; }
+    [[-1.4,3],[1.6,3.2]].forEach(([x,z])=>{
+      cyl(g,.06,.06,.75,'#55606A',x,0,z); cyl(g,.62,.62,.06,'#F7FAF9',x,.75,z,20);
+      cyl(g,.04,.04,2.1,'#55606A',x,.8,z); cone(g,1.15,.55,'#F2B134',x,2.6,z,10);
+    });
+    person(g,'#5E8F5A',-2.3,3,SKIN[0]);
+  },
+  manager(g){
+    box(g,4.6,.1,3.8,'#D8DEE2',0,0,0);
+    const glass = (w,h,d,x,z)=>{ const o = box(g,w,h,d,glassMat,x,.1,z); o.castShadow = false; };
+    glass(4.6,2.4,.06,0,-1.9); glass(.06,2.4,3.8,-2.3,0); glass(.06,2.4,3.8,2.3,0);
+    box(g,4.7,.14,3.9,'#3E6E8E',0,2.5,0);
+    [-2.3,2.3].forEach(x=>[-1.9,1.9].forEach(z=>box(g,.1,2.4,.1,'#3E6E8E',x,.1,z)));
+    cyl(g,.06,.06,.72,'#55606A',0,.1,0); cyl(g,.7,.7,.06,'#F7FAF9',0,.82,0,20);
+    person(g,'#8E5E8A',-1.1,0,SKIN[4]); person(g,'#F2B134',1.1,0,SKIN[3]);
+  },
+  task(g){
+    box(g,1.9,.08,.95,'#D8DEE2',0,.72,0);
+    [[-.85,-.4],[.85,-.4],[-.85,.4],[.85,.4]].forEach(p=>box(g,.06,.72,.06,'#8B97A0',p[0],0,p[1]));
+    box(g,1,.62,.05,taskScreenMat,0,.95,-.3); box(g,.08,.16,.08,'#8B97A0',0,.8,-.3);
+    cyl(g,.04,.04,.45,'#55606A',0,0,.8); box(g,.62,.08,.6,'#F2B134',0,.45,.8); box(g,.62,.6,.08,'#F2B134',0,.53,1.1);
+    box(g,2.4,1.6,.08,'#F7FAF9',2.6,.7,-.6);
+    box(g,.06,.7,.06,'#55606A',1.6,0,-.6); box(g,.06,.7,.06,'#55606A',3.6,0,-.6);
+    ['#F2B134','#86C181','#8CC0DE','#F2B134','#D96C5B'].forEach((c,i)=>box(g,.36,.36,.03,c,1.9+(i%3)*.6,1.2+Math.floor(i/3)*.55,-.54));
+    cyl(g,.25,.2,.4,'#3E6E8E',-2.4,0,-.2); ball(g,.42,'#5E8F5A',-2.4,.8,-.2);
+  },
+  exit(g){
+    box(g,.45,3,.45,'#3E6E8E',-1.9,0,0); box(g,.45,3,.45,'#3E6E8E',1.9,0,0); box(g,4.4,.45,.6,'#3E6E8E',0,3,0);
+    box(g,3.2,1.1,1,'#5E8F5A',-3.8,0,0); box(g,3.2,1.1,1,'#5E8F5A',3.8,0,0);
+    cyl(g,.07,.08,3.2,'#2F3B46',2.8,0,2.2);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(.26,14,10), lampMat); lamp.position.set(2.8,3.35,2.2); g.add(lamp);
+    lampLight.position.set(2.8,3.2,2.2); g.add(lampLight);
+    box(g,1.8,.1,.6,'#B07B4F',-2.6,.48,2.2); box(g,1.8,.5,.08,'#B07B4F',-2.6,.58,2.48);
+    box(g,.08,.48,.5,'#2F3B46',-3.4,0,2.2); box(g,.08,.48,.5,'#2F3B46',-1.8,0,2.2);
+  }
+};
+const lampLight = new THREE.PointLight('#FFD27A', 0, 14, 2);
+
+const stations = STOPS.map((s,i)=>{
+  const t = i/(N-1);
+  const pos = curve.getPointAt(t);
+  const tan = curve.getTangentAt(t).setY(0).normalize();
+  const nrm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
+  const side = i%2 ? -1 : 1;
+  const bPos = pos.clone().addScaledVector(nrm, side*4.6);
+  const g = new THREE.Group(); g.position.copy(bPos); g.lookAt(pos.x, 0, pos.z); scene.add(g);
+  BUILD[s.kind](g);
+  return {t, pos, tan, nrm, side, bPos};
+});
+
+/* markers */
+const markerHeads = [], hitTargets = [];
+const ringMats = [];
+stations.forEach((st,i)=>{
+  const m = new THREE.Group(); m.position.copy(st.pos); scene.add(m);
+  const rm = new THREE.MeshBasicMaterial({color:'#F7FAF9', transparent:true, opacity:.85});
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.95,1.2,40), rm); ring.rotation.x = -Math.PI/2; ring.position.y = .09; m.add(ring);
+  ringMats.push(rm);
+  cyl(m,.05,.05,1.9,'#2F3B46',0,0,0,6);
+  const hm = new THREE.MeshStandardMaterial({color:'#F7FAF9', emissive:'#000000', flatShading:true});
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.34,16,12), hm); head.position.y = 2.15; head.castShadow = true; m.add(head);
+  const hit = new THREE.Mesh(new THREE.SphereGeometry(1.1,8,6), new THREE.MeshBasicMaterial({visible:false}));
+  hit.position.y = 1.6; hit.userData.index = i; m.add(hit);
+  markerHeads.push(head); hitTargets.push(hit);
+});
+
+/* trees */
+function clearOf(x,z){
+  for (const p of pathSamples) if ((p.x-x)**2 + (p.z-z)**2 < 2.6**2) return false;
+  for (const s of stations) if ((s.bPos.x-x)**2 + (s.bPos.z-z)**2 < 5.2**2) return false;
+  return true;
+}
+let seed = 7; const rnd = ()=>{ seed = (seed*16807) % 2147483647; return (seed-1)/2147483646; };
+let placed = 0;
+for (let k=0; k<600 && placed<70; k++){
+  const a = rnd()*Math.PI*2, r = Math.sqrt(rnd())*26;
+  const x = Math.cos(a)*r, z = Math.sin(a)*r;
+  if (!clearOf(x,z)) continue;
+  const g = new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  const s = .7 + rnd()*.7; g.scale.setScalar(s);
+  cyl(g,.12,.16,.8,'#7A5A3E',0,0,0,6);
+  if (rnd() > .45) { cone(g,1,1.8,rnd()>.5?'#5E8F5A':'#4C7B4A',0,.7,0,7); cone(g,.75,1.3,'#6FA06A',0,1.6,0,7); }
+  else ball(g,.95,rnd()>.5?'#6FA06A':'#88B56F',0,1.55,0);
+  placed++;
+}
+
+/* clouds */
+const clouds = [];
+const cloudMat = new THREE.MeshStandardMaterial({color:'#FFFFFF', flatShading:true, roughness:1});
+for (let i=0;i<6;i++){
+  const c = new THREE.Group();
+  for (let j=0;j<4;j++){ const b = new THREE.Mesh(new THREE.SphereGeometry(1.4+rnd()*1.2,8,6), cloudMat); b.position.set(j*1.8-2.7, rnd()*.6, rnd()*1.2); b.scale.y = .6; c.add(b); }
+  c.position.set(-40+rnd()*80, 14+rnd()*6, -40+rnd()*80); c.userData.speed = .4+rnd()*.5;
+  scene.add(c); clouds.push(c);
+}
+
+/* walker */
+const walker = new THREE.Group(); scene.add(walker);
+cyl(walker,.28,.34,.9,'#F2B134',0,0,0,12); ball(walker,.24,SKIN[5],0,1.14,0);
+box(walker,.36,.42,.18,'#1E2B3A',0,.42,-.3);
+
+/* ---------- sky over the day ---------- */
+const SKY = [[0,'#F4D6C6'],[.28,'#B9DCEB'],[.6,'#A3CFEA'],[.84,'#F1BC8E'],[1,'#8A7FB0']].map(k=>[k[0],new THREE.Color(k[1])]);
+const SUNC = [[0,'#FFD9B8'],[.3,'#FFFFFF'],[.7,'#FFF6E6'],[1,'#FF9E6B']].map(k=>[k[0],new THREE.Color(k[1])]);
+const tmpC = new THREE.Color(), waterBase = new THREE.Color('#6FA6BE');
+function sample(keys, p, out){
+  for (let i=0;i<keys.length-1;i++){ if (p <= keys[i+1][0]) { const f = (p-keys[i][0])/(keys[i+1][0]-keys[i][0]); return out.copy(keys[i][1]).lerp(keys[i+1][1], f); } }
+  return out.copy(keys[keys.length-1][1]);
+}
+const smooth = (a,b,x)=>{ const t = Math.min(Math.max((x-a)/(b-a),0),1); return t*t*(3-2*t); };
+function setDay(p){
+  sample(SKY,p,scene.background); scene.fog.color.copy(scene.background);
+  hemi.color.copy(scene.background);
+  document.body.style.background = '#' + scene.background.getHexString();
+  const ang = THREE.MathUtils.lerp(Math.PI*.1, Math.PI*.9, p);
+  sun.position.set(Math.cos(ang)*-34, Math.sin(ang)*30 + 6, 16);
+  sample(SUNC,p,sun.color);
+  sun.intensity = .45 + .55*Math.sin(p*Math.PI);
+  hemi.intensity = .5 + .25*Math.sin(p*Math.PI);
+  waterMat.color.copy(waterBase).lerp(scene.background, .35);
+  const eve = smooth(.72, 1, p);
+  windowMat.emissiveIntensity = eve*1.1; lampMat.emissiveIntensity = eve*1.6; lampLight.intensity = eve*2.2;
+}
+
+/* ---------- camera framing ---------- */
+const camPos = new THREE.Vector3().copy(camera.position), camLook = new THREE.Vector3();
+const want = new THREE.Vector3(), wantLook = new THREE.Vector3();
+let introOpen = true, orbit = .8, walkerT = state.current/(N-1), targetT = walkerT;
+function frame(t, st){
+  const anchor = curve.getPointAt(Math.min(Math.max(t,0),1));
+  want.copy(anchor).addScaledVector(st.nrm, -st.side*10.5).addScaledVector(st.tan, -3.5); want.y = 8;
+  wantLook.copy(anchor).lerp(st.bPos, .42); wantLook.y = 1.1;
+}
+function applyViewOffset(){
+  const w = window.innerWidth, h = window.innerHeight;
+  if (introOpen || !finishEl.hidden) camera.clearViewOffset();
+  else if (w >= 760) camera.setViewOffset(w, h, -Math.min(200, w*.14), 0, w, h);
+  else camera.setViewOffset(w, h, 0, h*.2, w, h);
+}
+
+/* ---------- UI ---------- */
+const timeline = document.getElementById('timeline');
+const card = document.getElementById('card'), cardBody = document.getElementById('cardBody');
+const prevBtn = document.getElementById('prev'), nextBtn = document.getElementById('next');
+const introEl = document.getElementById('intro'), finishEl = document.getElementById('finish');
+const hint = document.getElementById('hint');
+
+STOPS.forEach((s,i)=>{
+  const li = document.createElement('li');
+  const b = document.createElement('button');
+  b.innerHTML = '<span class="dot"></span><span class="dlabel">'+s.time.replace(' ','\u00a0')+'</span>';
+  b.setAttribute('aria-label', s.time + ', ' + s.title);
+  b.addEventListener('click', ()=>{ if (!introOpen) go(i); });
+  li.appendChild(b); timeline.appendChild(li);
+});
+
+function renderTimeline(){
+  [...timeline.children].forEach((li,i)=>{
+    li.className = (i === state.current ? 'current ' : '') + (stopDone(i) ? 'done' : '');
+    li.firstChild.setAttribute('aria-current', i === state.current ? 'step' : 'false');
+  });
+}
+function renderMarkers(){
+  markerHeads.forEach((h,i)=>{
+    const c = i === state.current ? '#F2B134' : stopDone(i) ? '#5E8F5A' : '#F7FAF9';
+    h.material.color.set(c); h.material.emissive.set(i === state.current ? '#5a3c00' : '#000000');
+    ringMats[i].color.set(c);
+  });
+}
+function renderCount(){
+  const i = state.current, d = state.done[i].filter(Boolean).length, n = STOPS[i].tasks.length;
+  const el = document.getElementById('count');
+  if (el) el.textContent = d === n ? 'All done here.' : d + ' of ' + n + ' done';
+}
+function renderCard(animate){
+  const i = state.current, s = STOPS[i];
+  cardBody.innerHTML = '';
+  const time = document.createElement('p'); time.className = 'time'; time.textContent = s.time;
+  const h = document.createElement('h2'); h.textContent = s.title;
+  const p = document.createElement('p'); p.className = 'desc'; p.textContent = s.desc;
+  const ul = document.createElement('ul'); ul.className = 'tasks';
+  s.tasks.forEach((t,j)=>{
+    const li = document.createElement('li'), lab = document.createElement('label');
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = state.done[i][j];
+    cb.addEventListener('change', ()=>{ state.done[i][j] = cb.checked; save(); renderCount(); renderTimeline(); renderMarkers(); });
+    const span = document.createElement('span'); span.textContent = t;
+    lab.append(cb, span); li.appendChild(lab); ul.appendChild(li);
+  });
+  const count = document.createElement('p'); count.className = 'count'; count.id = 'count';
+  cardBody.append(time, h, p, ul, count);
+  renderCount();
+  prevBtn.disabled = i === 0;
+  nextBtn.textContent = i === N-1 ? 'Finish the day' : 'Walk to ' + STOPS[i+1].time;
+  if (animate && !reduceMotion){ cardBody.classList.remove('swap'); void cardBody.offsetWidth; cardBody.classList.add('swap'); }
+}
+function render(animate){ renderTimeline(); renderMarkers(); renderCard(animate); }
+
+function go(i){
+  i = Math.min(Math.max(i,0),N-1);
+  if (i === state.current) return;
+  state.current = i; targetT = i/(N-1);
+  if (reduceMotion) walkerT = targetT;
+  save(); render(true);
+}
+
+prevBtn.addEventListener('click', ()=>go(state.current-1));
+nextBtn.addEventListener('click', ()=>{ if (state.current < N-1) go(state.current+1); else showFinish(); });
+
+function startJourney(reset){
+  if (reset){ state.done = blank(); state.current = 0; save(); }
+  walkerT = targetT = state.current/(N-1);
+  introOpen = false; introEl.hidden = true; card.hidden = false; hint.hidden = false;
+  render(true); applyViewOffset(); nextBtn.focus({preventScroll:true});
+}
+function showFinish(){
+  const d = totalDone();
+  document.getElementById('finText').textContent =
+    'You ticked off ' + d + ' of ' + totalTasks + ' things. ' +
+    (d === totalTasks ? 'Every single one. ' : 'Whatever’s left can wait for tomorrow. ') +
+    'Day two starts at 9:30, and Sam’s saving you a seat.';
+  finishEl.hidden = false; applyViewOffset(); document.getElementById('again').focus();
+}
+document.getElementById('again').addEventListener('click', ()=>{ finishEl.hidden = true; state.current = 0; walkerT = targetT = 0; save(); render(true); applyViewOffset(); });
+document.getElementById('fresh').addEventListener('click', ()=>{ finishEl.hidden = true; state.done = blank(); state.current = 0; walkerT = targetT = 0; save(); render(true); applyViewOffset(); });
+
+(function buildIntro(){
+  const box = document.getElementById('introActions');
+  const resumable = saved && (state.current > 0 || totalDone() > 0);
+  const mkBtn = (label, cls, fn)=>{ const b = document.createElement('button'); b.className = cls; b.textContent = label; b.addEventListener('click', fn); box.appendChild(b); return b; };
+  if (resumable){
+    mkBtn('Pick up at ' + STOPS[state.current].time, 'btn', ()=>startJourney(false)).focus();
+    mkBtn('Start over', 'btn quiet', ()=>startJourney(true));
+  } else {
+    mkBtn('Start your day', 'btn', ()=>startJourney(false)).focus();
+  }
+})();
+
+window.addEventListener('keydown', e=>{
+  if (introOpen) return;
+  if (!finishEl.hidden){ if (e.key === 'Escape'){ finishEl.hidden = true; applyViewOffset(); } return; }
+  if (e.key === 'ArrowRight') { e.preventDefault(); state.current < N-1 ? go(state.current+1) : showFinish(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); go(state.current-1); }
+});
+
+/* picking pins */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let downAt = null;
+canvas.addEventListener('pointerdown', e=>{ downAt = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerup', e=>{
+  if (!downAt || introOpen) return;
+  const moved = Math.hypot(e.clientX-downAt[0], e.clientY-downAt[1]); downAt = null;
+  if (moved > 8) return;
+  const r = canvas.getBoundingClientRect();
+  ptr.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(hitTargets, false)[0];
+  if (hit) go(hit.object.userData.index);
+});
+canvas.addEventListener('pointermove', e=>{
+  if (introOpen) return;
+  const r = canvas.getBoundingClientRect();
+  ptr.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ptr, camera);
+  canvas.style.cursor = ray.intersectObjects(hitTargets, false).length ? 'pointer' : 'default';
+});
+
+/* ---------- loop ---------- */
+function resize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); applyViewOffset();
+}
+window.addEventListener('resize', resize); resize();
+
+const clock = new THREE.Clock();
+const wp = new THREE.Vector3();
+let elapsed = 0;
+function tick(){
+  const dt = Math.min(clock.getDelta(), .05); elapsed += dt;
+
+  const diff = targetT - walkerT;
+  const moving = Math.abs(diff) > 1e-4;
+  if (moving){ const step = Math.sign(diff)*Math.min(Math.abs(diff), dt*.14); walkerT += step; }
+  curve.getPointAt(walkerT, wp); walker.position.copy(wp);
+  const tan = curve.getTangentAt(walkerT);
+  const dir = diff < 0 ? -1 : 1;
+  walker.rotation.y = Math.atan2(tan.x*dir, tan.z*dir);
+  walker.position.y = moving && !reduceMotion ? Math.abs(Math.sin(elapsed*11))*.14 : 0;
+
+  if (introOpen){
+    orbit += dt*(reduceMotion ? 0 : .06);
+    want.set(Math.cos(orbit)*46, 30, Math.sin(orbit)*46); wantLook.set(0,0,0);
+    setDay(.12);
+  } else {
+    frame(walkerT, stations[state.current]);
+    setDay(walkerT);
+  }
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dt*2.4);
+  camPos.lerp(want, k); camLook.lerp(wantLook, k);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+
+  if (!reduceMotion){
+    const h = markerHeads[state.current]; h.position.y = 2.15 + Math.sin(elapsed*3)*.15;
+    clouds.forEach(c=>{ c.position.x += c.userData.speed*dt; if (c.position.x > 50) c.position.x = -50; });
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+render(false);
+tick();
+})();
+</script>
+</body>
+</html>
